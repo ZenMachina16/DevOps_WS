@@ -2,7 +2,6 @@ provider "aws" {
   access_key                  = "test"
   secret_key                  = "test"
   region                      = "us-east-1"
-  s3_force_path_style         = true
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_requesting_account_id  = true
@@ -13,29 +12,13 @@ provider "aws" {
   }
 }
 
-resource "aws_iam_role" "lambda_exec_role" {
-  name = "lambda_exec_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
 
 resource "aws_lambda_function" "library_api" {
   function_name = "library-api"
   filename      = "lambda.zip"
   handler       = "wsgi_handler.handler"
   runtime       = "python3.8"
-  role          = aws_iam_role.lambda_exec_role.arn
+  role = "arn:aws:iam::000000000000:role/dummy-role"
   source_code_hash = filebase64sha256("lambda.zip")
 }
 
