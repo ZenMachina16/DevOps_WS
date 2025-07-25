@@ -82,7 +82,7 @@ def health_check():
 
 @app.route('/api/books', methods=['GET'])
 def get_all_books():
-    """Get all the books"""
+    """Get all the books from the library"""
     return jsonify({
         "books": books,
         "count": len(books)
