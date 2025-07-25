@@ -62,7 +62,7 @@ def welcome():
     """Welcome endpoint that provides basic information about the API"""
     return jsonify({
         "message": "Welcome to the Library API",
-        "description": "A complete CRUD system for managing books",
+        "description": "A  CRUD system for managing books",
         "endpoints": {
             "GET /": "This welcome message",
             "GET /health": "Health check",
