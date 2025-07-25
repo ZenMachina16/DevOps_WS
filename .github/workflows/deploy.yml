@@ -3,6 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   deploy:
@@ -11,10 +13,21 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+
+    - name: Start LocalStack
+      run: |
+        docker-compose up -d
+        sleep 10  # Wait for LocalStack to start
 
     - name: Install dependencies
       run: |
@@ -38,3 +51,11 @@ jobs:
       run: |
         terraform init
         terraform apply -auto-approve
+
+    - name: Test Deployment
+      run: |
+        curl http://localhost:4566/restapis
+        echo "Waiting for API to be ready..."
+        sleep 10
+        ENDPOINT=$(aws --endpoint-url=http://localhost:4566 apigateway get-rest-apis --query 'items[0].id' --output text)
+        curl -v "http://localhost:4566/restapis/$ENDPOINT/prod/_user_request_/"
