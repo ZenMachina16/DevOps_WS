@@ -1,0 +1,40 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    env:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/
+
+    - name: Package Lambda
+      run: |
+        mkdir -p lambda
+        cp app.py lambda/
+        pip install -r requirements.txt -t lambda/
+        cd lambda
+        echo 'def handler(event, context): from app import app as application; return application(event, context)' > wsgi_handler.py
+        zip -r ../lambda.zip .
+
+    - name: Deploy with Terraform
+      working-directory: terraform
+      run: |
+        terraform init
+        terraform apply -auto-approve

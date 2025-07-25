@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  localstack:
+    container_name: localstack-library-api
+    image: localstack/localstack:2.3
+    ports:
+      - "4566:4566"            # LocalStack Gateway
+      - "4571:4571"            # LocalStack Dashboard (Pro)
+    environment:
+      - DEBUG=${DEBUG-}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR-}
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY-}
+      - SERVICES=lambda,apigateway,iam,logs,cloudformation
+      - DATA_DIR=${DATA_DIR-}
+      - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
+      - PERSISTENCE=${PERSISTENCE-}
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - localstack-network
+
+networks:
+  localstack-network:
+    driver: bridge 
