@@ -1,3 +1,4 @@
+
 import json
 import base64
 from io import StringIO
@@ -76,4 +77,5 @@ def handler(event, context):
         'headers': response_data.get('headers', {}),
         'body': response_body,
         'isBase64Encoded': False
+
     }
