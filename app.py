@@ -59,7 +59,7 @@ def validate_book_data(data, is_update=False):
 
 @app.route('/', methods=['GET'])
 def welcome():
-    """Welcome message endpoint"""
+    """Welcome endpoint that provides basic information about the API"""
     return jsonify({
         "message": "Welcome to the Library API",
         "description": "A complete CRUD system for managing books",
@@ -184,6 +184,95 @@ def get_api_info():
         "created": "2024"
     })
 
+@app.route("/ui")
+def ui():
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Library Manager</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100 p-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-6">📚 Library Book Manager</h1>
+
+            <div class="bg-white shadow-md rounded p-4 mb-6">
+                <h2 class="text-xl font-semibold mb-2">Add New Book</h2>
+                <form id="bookForm" class="grid grid-cols-2 gap-4">
+                    <input type="text" placeholder="Title" id="title" class="border p-2 rounded" required>
+                    <input type="text" placeholder="Author" id="author" class="border p-2 rounded" required>
+                    <input type="text" placeholder="Genre" id="genre" class="border p-2 rounded" required>
+                    <input type="number" placeholder="Year" id="year" class="border p-2 rounded" required>
+                    <button type="submit" class="col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                        Add Book
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white shadow-md rounded p-4">
+                <h2 class="text-xl font-semibold mb-4">All Books</h2>
+                <div id="bookList" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <script>
+            const API_BASE = "/api/books";
+            const bookList = document.getElementById("bookList");
+            const bookForm = document.getElementById("bookForm");
+
+            async function fetchBooks() {
+                const res = await fetch(API_BASE);
+                const data = await res.json();
+                bookList.innerHTML = "";
+                data.books.forEach(book => {
+                    const div = document.createElement("div");
+                    div.className = "border p-4 rounded bg-gray-50";
+                    div.innerHTML = `
+                        <h3 class="font-bold">${book.title}</h3>
+                        <p>Author: ${book.author}</p>
+                        <p>Genre: ${book.genre}</p>
+                        <p>Year: ${book.year}</p>
+                        <button onclick="deleteBook(${book.id})" class="mt-2 bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                    `;
+                    bookList.appendChild(div);
+                });
+            }
+
+            async function deleteBook(id) {
+                await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+                fetchBooks();
+            }
+
+            bookForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const title = document.getElementById("title").value;
+                const author = document.getElementById("author").value;
+                const genre = document.getElementById("genre").value;
+                const year = document.getElementById("year").value;
+
+                const res = await fetch(API_BASE, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title, author, genre, year })
+                });
+
+                if (res.ok) {
+                    bookForm.reset();
+                    fetchBooks();
+                } else {
+                    const data = await res.json();
+                    alert("Error: " + (data?.error || "Unknown"));
+                }
+            });
+
+            fetchBooks();
+        </script>
+    </body>
+    </html>
+    '''
+
 @app.errorhandler(404)
 def not_found(error):
     """Handle 404 errors"""
@@ -211,4 +300,4 @@ if __name__ == '__main__':
     print("- DELETE /api/books/<id> (Delete book)")
     print("- GET /api/info (API information)")
     print("\nRunning on http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5000)
